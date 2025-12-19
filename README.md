@@ -47,8 +47,7 @@ Locations are scored out of 100 points based on:
 - **HTML5**: Structure and content
 - **CSS3**: Styling and responsive design
 - **JavaScript**: Application logic and interactivity
-- **Leaflet.js**: Interactive mapping functionality
-- **OpenStreetMap**: Map tiles and geocoding
+- **Canvas API**: Custom interactive mapping functionality
 
 ## Getting Started
 
@@ -70,6 +69,80 @@ python -m http.server 8000
 - Safari
 - Edge
 - Mobile browsers
+
+## Data Sources
+
+### Current Implementation (Demo)
+The application currently generates **sample data locally** for demonstration purposes. All location data including population, income, competition, traffic, and rent costs are randomly generated with realistic ranges.
+
+### Production Implementation
+For a real-world deployment, the application should integrate with these data sources:
+
+#### Demographic Data
+- **US Census Bureau API**: Population and income statistics
+  - Endpoint: `https://api.census.gov/data`
+  - Provides: Population counts, median household income, age demographics
+- **Canada Census**: For Canadian locations
+- **Eurostat**: For European locations
+
+#### Business & Competition Data
+- **Google Places API**: Nearby business density and competition analysis
+  - Business counts by category within radius
+  - Reviews and ratings data
+- **Yelp Fusion API**: Local business information
+- **SafeGraph**: Point-of-interest data and foot traffic patterns
+
+#### Real Estate Data
+- **Zillow API**: Property values and rental costs
+- **Redfin**: Real estate market data
+- **CoStar**: Commercial real estate data
+- **Local MLS APIs**: Regional property listings
+
+#### Traffic Data
+- **Google Maps API**: Traffic patterns and volume
+- **HERE Traffic API**: Real-time and historical traffic
+- **TomTom Traffic API**: Traffic flow data
+
+#### Transportation Data
+- **Transit APIs**: Public transportation proximity
+  - Google Transit API
+  - Local transit authority APIs
+- **OpenStreetMap**: Location of transit stations, airports, highways
+
+### Implementation Example
+
+```javascript
+// Example of fetching real demographic data
+async function fetchRealLocationData(lat, lng) {
+    // Fetch census data
+    const censusResponse = await fetch(
+        `https://api.census.gov/data/2021/acs/acs5?get=B01003_001E,B19013_001E&for=tract:*&in=state:06`
+    );
+    const censusData = await censusResponse.json();
+    
+    // Fetch nearby businesses
+    const placesResponse = await fetch(
+        `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=1600&key=YOUR_API_KEY`
+    );
+    const placesData = await placesResponse.json();
+    
+    // Combine and return real data
+    return {
+        population: censusData.population,
+        avgIncome: censusData.medianIncome,
+        competition: calculateCompetitionLevel(placesData),
+        // ... other real metrics
+    };
+}
+```
+
+### Data Privacy & Compliance
+When implementing real data sources:
+- Ensure compliance with API terms of service
+- Respect rate limits
+- Cache data appropriately to minimize API calls
+- Handle user data according to GDPR/CCPA regulations
+- Display proper data attributions
 
 ## Demo Data
 

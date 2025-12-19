@@ -80,7 +80,13 @@ Each location is scored out of 100 points based on:
 
 ## Notes
 
-- This is a demonstration tool using sample data
+- **This is a demonstration tool using randomly generated sample data**
+- The data is created client-side and changes each time you search or analyze
+- For production use, integrate with real data APIs:
+  - US Census Bureau (demographics)
+  - Google Places/Maps (business density, traffic)
+  - Zillow/Redfin (real estate costs)
+  - Local government open data portals
 - In production, connect to real demographic and business data APIs
 - The scoring algorithm can be customized based on specific business needs
 - Always conduct additional research before making final location decisions

@@ -175,6 +175,13 @@ function handleWheel(e) {
 }
 
 // Generate sample location data for demonstration
+// NOTE: This generates random demo data. In a production environment, this should be replaced
+// with API calls to real data sources such as:
+// - US Census Bureau API (demographics, population, income data)
+// - Google Places API (business density, competition analysis)
+// - Real estate APIs like Zillow or Redfin (rent/property costs)
+// - Traffic data from Google Maps API or similar
+// - Local government open data portals
 function generateSampleLocations(centerLat, centerLng, count = 10) {
     const locations = [];
     const businessTypes = ['retail', 'restaurant', 'office', 'warehouse', 'service'];
@@ -210,64 +217,66 @@ function generateSampleLocations(centerLat, centerLng, count = 10) {
 
 // Calculate location score based on criteria
 function calculateScore(location, criteria) {
-    let score = 0;
-    let maxScore = 100;
+    let totalScore = 0;
 
-    // Population score (20 points)
+    // Population score (20 points max)
+    let populationScore = 0;
     if (location.population >= criteria.population) {
-        score += 20 * (location.population / (criteria.population + 50000));
-        score = Math.min(score, 20);
+        populationScore = 20 * Math.min(location.population / (criteria.population + 50000), 1);
     } else {
-        score += 10 * (location.population / criteria.population);
+        populationScore = 10 * (location.population / criteria.population);
     }
+    totalScore += populationScore;
 
-    // Income score (20 points)
+    // Income score (20 points max)
+    let incomeScore = 0;
     if (location.avgIncome >= criteria.income) {
-        score += 20 * (location.avgIncome / (criteria.income + 30000));
-        score = Math.min(score, 20);
+        incomeScore = 20 * Math.min(location.avgIncome / (criteria.income + 30000), 1);
     } else {
-        score += 10 * (location.avgIncome / criteria.income);
+        incomeScore = 10 * (location.avgIncome / criteria.income);
     }
+    totalScore += incomeScore;
 
-    // Competition score (20 points)
+    // Competition score (20 points max)
     const competitionMap = { low: 20, medium: 12, high: 5 };
     const preferredCompetition = criteria.competition;
     if (location.competition === preferredCompetition) {
-        score += competitionMap[location.competition];
+        totalScore += competitionMap[location.competition];
     } else if (location.competition === 'low') {
-        score += 15;
+        totalScore += 15;
     } else if (location.competition === 'medium') {
-        score += 10;
+        totalScore += 10;
     } else {
-        score += 5;
+        totalScore += 5;
     }
 
-    // Traffic score (20 points)
+    // Traffic score (20 points max)
     const trafficMap = { high: 20, medium: 12, low: 5 };
     const preferredTraffic = criteria.trafficVolume;
     if (location.traffic === preferredTraffic) {
-        score += trafficMap[location.traffic];
+        totalScore += trafficMap[location.traffic];
     } else if (location.traffic === 'high') {
-        score += 15;
+        totalScore += 15;
     } else if (location.traffic === 'medium') {
-        score += 10;
+        totalScore += 10;
     } else {
-        score += 5;
+        totalScore += 5;
     }
 
-    // Proximity score (20 points)
+    // Proximity score (20 points max)
     const proximityMap = { close: 20, moderate: 12, far: 5 };
     if (location.proximity === criteria.proximity) {
-        score += proximityMap[location.proximity];
+        totalScore += proximityMap[location.proximity];
     } else if (location.proximity === 'close') {
-        score += 15;
+        totalScore += 15;
     } else if (location.proximity === 'moderate') {
-        score += 10;
+        totalScore += 10;
     } else {
-        score += 5;
+        totalScore += 5;
     }
 
-    return Math.min(Math.round(score), maxScore);
+    // Return score capped at 100
+    return Math.min(Math.round(totalScore), 100);
 }
 
 // Get score category and color

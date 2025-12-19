@@ -204,11 +204,18 @@ function generateSampleLocations(centerLat, centerLng, count = 10) {
             lng: lng,
             population: Math.floor(Math.random() * 200000) + 10000,
             avgIncome: Math.floor(Math.random() * 100000) + 30000,
+            medianIncome: Math.floor(Math.random() * 90000) + 28000,
             competition: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
             traffic: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
             proximity: ['close', 'moderate', 'far'][Math.floor(Math.random() * 3)],
             rentCost: Math.floor(Math.random() * 5000) + 1000,
-            businessType: businessTypes[Math.floor(Math.random() * businessTypes.length)]
+            businessType: businessTypes[Math.floor(Math.random() * businessTypes.length)],
+            // Nya svenska datapunkter
+            housesCount: Math.floor(Math.random() * 5000) + 100,
+            averageAge: Math.floor(Math.random() * 20) + 35,
+            renovationIndex: Math.floor(Math.random() * 100) + 1,
+            newConstructionIndex: Math.floor(Math.random() * 100) + 1,
+            buildingMaterialsTurnover: Math.floor(Math.random() * 10000000) + 500000
         });
     }
 
@@ -347,22 +354,40 @@ function displayLocations(locations) {
                 </span>
                 <div class="location-details">
                     <div class="detail-item">
-                        <strong>Population:</strong> ${location.population.toLocaleString()}
+                        <strong>Befolkning:</strong> ${location.population.toLocaleString()}
                     </div>
                     <div class="detail-item">
-                        <strong>Avg Income:</strong> $${location.avgIncome.toLocaleString()}
+                        <strong>Medellön:</strong> ${location.avgIncome.toLocaleString()} kr
                     </div>
                     <div class="detail-item">
-                        <strong>Competition:</strong> ${location.competition}
+                        <strong>Medianlön:</strong> ${location.medianIncome ? location.medianIncome.toLocaleString() + ' kr' : 'N/A'}
                     </div>
                     <div class="detail-item">
-                        <strong>Traffic:</strong> ${location.traffic}
+                        <strong>Snittålder:</strong> ${location.averageAge || 'N/A'} år
+                    </div>
+                    <div class="detail-item">
+                        <strong>Villor/Radhus:</strong> ${location.housesCount ? location.housesCount.toLocaleString() : 'N/A'}
+                    </div>
+                    <div class="detail-item">
+                        <strong>Konkurrens:</strong> ${location.competition}
+                    </div>
+                    <div class="detail-item">
+                        <strong>Trafik:</strong> ${location.traffic}
                     </div>
                     <div class="detail-item">
                         <strong>Transport:</strong> ${location.proximity}
                     </div>
                     <div class="detail-item">
-                        <strong>Rent:</strong> $${location.rentCost.toLocaleString()}/mo
+                        <strong>Hyra:</strong> ${location.rentCost.toLocaleString()} kr/mån
+                    </div>
+                    <div class="detail-item">
+                        <strong>Renoveringsindex:</strong> ${location.renovationIndex || 'N/A'}
+                    </div>
+                    <div class="detail-item">
+                        <strong>Nybyggnadsindex:</strong> ${location.newConstructionIndex || 'N/A'}
+                    </div>
+                    <div class="detail-item">
+                        <strong>Byggmaterial (oms.):</strong> ${location.buildingMaterialsTurnover ? (location.buildingMaterialsTurnover / 1000000).toFixed(1) + ' Mkr' : 'N/A'}
                     </div>
                 </div>
             </div>
@@ -373,22 +398,36 @@ function displayLocations(locations) {
 // Search for a location
 async function searchLocation(query) {
     if (!query.trim()) {
-        alert('Please enter a location to search');
+        alert('Vänligen ange en plats att söka efter');
         return;
     }
 
-    // For demo purposes, simulate search with predefined locations
+    // Svenska städer och kommuner där K-Bygg finns
     const locations = {
-        'san francisco': { lat: 37.7749, lng: -122.4194 },
-        'new york': { lat: 40.7128, lng: -74.0060 },
-        'los angeles': { lat: 34.0522, lng: -118.2437 },
-        'chicago': { lat: 41.8781, lng: -87.6298 },
-        'houston': { lat: 29.7604, lng: -95.3698 },
-        'london': { lat: 51.5074, lng: -0.1278 },
-        'paris': { lat: 48.8566, lng: 2.3522 },
-        'tokyo': { lat: 35.6762, lng: 139.6503 },
-        'sydney': { lat: -33.8688, lng: 151.2093 },
-        'toronto': { lat: 43.6532, lng: -79.3832 }
+        'stockholm': { lat: 59.3293, lng: 18.0686 },
+        'täby': { lat: 59.4439, lng: 18.0658 },
+        'södertälje': { lat: 59.1955, lng: 17.6253 },
+        'järfälla': { lat: 59.4144, lng: 17.8617 },
+        'uppsala': { lat: 59.8586, lng: 17.6389 },
+        'vallentuna': { lat: 59.5339, lng: 18.0775 },
+        'vaxholm': { lat: 59.4019, lng: 18.3544 },
+        'tullinge': { lat: 59.2000, lng: 17.9094 },
+        'linköping': { lat: 58.4108, lng: 15.6214 },
+        'norrköping': { lat: 58.5878, lng: 16.1928 },
+        'mjölby': { lat: 58.3250, lng: 15.1278 },
+        'motala': { lat: 58.5372, lng: 15.0356 },
+        'västerås': { lat: 59.6099, lng: 16.5448 },
+        'eskilstuna': { lat: 59.3711, lng: 16.5089 },
+        'örebro': { lat: 59.2753, lng: 15.2134 },
+        'östersund': { lat: 63.1792, lng: 14.6357 },
+        'sundsvall': { lat: 62.3908, lng: 17.3069 },
+        'umeå': { lat: 63.8258, lng: 20.2630 },
+        'göteborg': { lat: 57.7089, lng: 11.9746 },
+        'kungälv': { lat: 57.8706, lng: 11.9800 },
+        'halmstad': { lat: 56.6745, lng: 12.8567 },
+        'jönköping': { lat: 57.7826, lng: 14.1618 },
+        'malmö': { lat: 55.6050, lng: 13.0038 },
+        'helsingborg': { lat: 56.0465, lng: 12.6945 }
     };
     
     const queryLower = query.toLowerCase();
@@ -406,7 +445,7 @@ async function searchLocation(query) {
     }
     
     if (!found) {
-        alert('Location not found. Try: San Francisco, New York, Los Angeles, Chicago, Houston, London, Paris, Tokyo, Sydney, or Toronto');
+        alert('Plats ej hittad. Prova: Stockholm, Uppsala, Linköping, Göteborg, Östersund, Umeå, Jönköping');
     }
 }
 
@@ -483,8 +522,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize map
     initMap();
 
-    // Generate initial sample data
-    sampleLocations = generateSampleLocations(37.7749, -122.4194, 15);
+    // Generate initial sample data (centered on Sweden)
+    sampleLocations = generateSampleLocations(59.3293, 18.0686, 15); // Stockholm
 
     // Set up event listeners
     document.getElementById('searchBtn').addEventListener('click', function() {
@@ -500,7 +539,65 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('analyzeBtn').addEventListener('click', analyzeLocations);
+    
+    // New: Show K-Bygg locations button
+    document.getElementById('showKbyggBtn').addEventListener('click', showKbyggLocations);
 
     // Initial display
     displayLocations([]);
 });
+
+// Show K-Bygg locations on map
+function showKbyggLocations() {
+    if (typeof KBYGG_LOCATIONS === 'undefined') {
+        alert('K-Bygg data inte tillgänglig. Kontrollera att kbygg-data.js är laddad.');
+        return;
+    }
+    
+    // Clear existing markers
+    markers = [];
+    
+    // Add K-Bygg locations as markers
+    KBYGG_LOCATIONS.forEach(location => {
+        markers.push({
+            name: location.name,
+            lat: location.lat,
+            lng: location.lng,
+            color: '#667eea', // K-Bygg brand color
+            address: location.address,
+            region: location.region,
+            isKbygg: true
+        });
+    });
+    
+    // Center map on Sweden
+    mapCenter = { lat: 62.0, lng: 15.0 };
+    mapZoom = 5;
+    
+    drawMap();
+    
+    // Display K-Bygg locations in list
+    const locationsList = document.getElementById('locationsList');
+    locationsList.innerHTML = `
+        <div style="padding: 20px; background: #f0f9ff; border-radius: 8px; margin-bottom: 15px;">
+            <h3 style="color: #667eea; margin-top: 0;">K-Bygg Anläggningar (${KBYGG_LOCATIONS.length} st)</h3>
+            <p>Visa alla K-Bygg anläggningar på kartan. Klicka på markörerna för mer information.</p>
+        </div>
+        ${KBYGG_LOCATIONS.map((loc, idx) => `
+            <div class="location-card" style="border-left-color: #667eea;">
+                <h3>${loc.name}</h3>
+                <div class="location-details">
+                    <div class="detail-item" style="grid-column: 1 / -1;">
+                        <strong>Adress:</strong> ${loc.address}
+                    </div>
+                    <div class="detail-item">
+                        <strong>Region:</strong> ${loc.region}
+                    </div>
+                    <div class="detail-item">
+                        <strong>Koordinater:</strong> ${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}
+                    </div>
+                </div>
+            </div>
+        `).join('')}
+    `;
+}

@@ -517,6 +517,139 @@ async function analyzeLocations() {
     displayLocations(analyzedLocations);
 }
 
+// Parse CSV file
+function parseCSV(text) {
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const data = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',');
+        if (values.length >= headers.length) {
+            const row = {};
+            headers.forEach((header, index) => {
+                row[header] = values[index] ? values[index].trim() : '';
+            });
+            data.push(row);
+        }
+    }
+    
+    return data;
+}
+
+// Process competitor CSV data
+function processCompetitorCSV(csvData) {
+    const locations = [];
+    
+    csvData.forEach((row, index) => {
+        try {
+            const lat = parseFloat(row.lat || row.latitude || row['lat'] || row['latitude']);
+            const lng = parseFloat(row.lng || row.lon || row.longitude || row['lng'] || row['lon'] || row['longitude']);
+            
+            if (!isNaN(lat) && !isNaN(lng)) {
+                locations.push({
+                    id: `comp-${index}`,
+                    competitor: row.konkurrent || row.competitor || row.company || 'Okänd',
+                    name: row.namn || row.name || row.location || `Lokation ${index + 1}`,
+                    address: row.adress || row.address || '',
+                    city: row.stad || row.city || row.ort || '',
+                    lat: lat,
+                    lng: lng
+                });
+            }
+        } catch (error) {
+            console.error(`Error processing row ${index}:`, error);
+        }
+    });
+    
+    return locations;
+}
+
+// Show competitors on map
+function showCompetitors() {
+    const competitorLocations = getCompetitorLocations();
+    
+    if (competitorLocations.length === 0) {
+        alert('Inga konkurrentlokationer laddade. Ladda upp en CSV-fil först.');
+        return;
+    }
+    
+    // Clear existing markers
+    markers = [];
+    
+    // Add competitor locations as markers with different colors per competitor
+    const competitorColors = {};
+    let colorIndex = 0;
+    const colors = ['#FF6B6B', '#4ECDC4', '#95E1D3', '#F38181', '#AA96DA', '#FCBAD3', '#FF8B94', '#FED766'];
+    
+    competitorLocations.forEach(location => {
+        // Assign color to competitor if not already assigned
+        if (!competitorColors[location.competitor]) {
+            competitorColors[location.competitor] = colors[colorIndex % colors.length];
+            colorIndex++;
+        }
+        
+        markers.push({
+            name: location.name,
+            lat: location.lat,
+            lng: location.lng,
+            color: competitorColors[location.competitor],
+            address: location.address,
+            city: location.city,
+            competitor: location.competitor,
+            isCompetitor: true
+        });
+    });
+    
+    // Center map on Sweden
+    mapCenter = { lat: 62.0, lng: 15.0 };
+    mapZoom = 5;
+    
+    drawMap();
+    
+    // Display competitor locations in list
+    const locationsList = document.getElementById('locationsList');
+    
+    // Group by competitor
+    const grouped = {};
+    competitorLocations.forEach(loc => {
+        if (!grouped[loc.competitor]) {
+            grouped[loc.competitor] = [];
+        }
+        grouped[loc.competitor].push(loc);
+    });
+    
+    let html = `
+        <div style="padding: 20px; background: #fff3cd; border-radius: 8px; margin-bottom: 15px;">
+            <h3 style="color: #856404; margin-top: 0;">Konkurrentlokationer (${competitorLocations.length} st)</h3>
+            <p>Visa alla konkurrentlokationer på kartan. Olika färger representerar olika konkurrenter.</p>
+        </div>
+    `;
+    
+    Object.keys(grouped).sort().forEach(competitor => {
+        const locs = grouped[competitor];
+        const color = competitorColors[competitor];
+        
+        html += `
+            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid ${color};">
+                <h3 style="color: #333; margin-top: 0;">${competitor} (${locs.length} lokationer)</h3>
+                ${locs.map(loc => `
+                    <div class="location-card" style="border-left-color: ${color}; margin-bottom: 10px;">
+                        <h4 style="margin-top: 0;">${loc.name}</h4>
+                        <div class="location-details">
+                            ${loc.address ? `<div class="detail-item" style="grid-column: 1 / -1;"><strong>Adress:</strong> ${loc.address}</div>` : ''}
+                            ${loc.city ? `<div class="detail-item"><strong>Stad:</strong> ${loc.city}</div>` : ''}
+                            <div class="detail-item"><strong>Koordinater:</strong> ${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    });
+    
+    locationsList.innerHTML = html;
+}
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize map
@@ -540,8 +673,69 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('analyzeBtn').addEventListener('click', analyzeLocations);
     
-    // New: Show K-Bygg locations button
+    // K-Bygg locations button
     document.getElementById('showKbyggBtn').addEventListener('click', showKbyggLocations);
+    
+    // CSV Upload functionality
+    const fileInput = document.getElementById('competitorFileInput');
+    const uploadBtn = document.getElementById('uploadCompetitorBtn');
+    const showCompetitorsBtn = document.getElementById('showCompetitorsBtn');
+    const fileName = document.getElementById('fileName');
+    const uploadStatus = document.getElementById('uploadStatus');
+    
+    uploadBtn.addEventListener('click', function() {
+        fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        fileName.textContent = file.name;
+        uploadStatus.style.display = 'none';
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            try {
+                const csvText = event.target.result;
+                const csvData = parseCSV(csvText);
+                const competitorLocations = processCompetitorCSV(csvData);
+                
+                if (competitorLocations.length === 0) {
+                    uploadStatus.textContent = 'Inga giltiga lokationer hittades i filen. Kontrollera att CSV-filen har kolumnerna: Konkurrent, Namn, Adress, Stad, Lat, Lng';
+                    uploadStatus.className = 'error';
+                    uploadStatus.style.display = 'block';
+                    showCompetitorsBtn.style.display = 'none';
+                    return;
+                }
+                
+                addCompetitorLocations(competitorLocations);
+                
+                uploadStatus.textContent = `✓ ${competitorLocations.length} konkurrentlokationer laddade!`;
+                uploadStatus.className = 'success';
+                uploadStatus.style.display = 'block';
+                showCompetitorsBtn.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error parsing CSV:', error);
+                uploadStatus.textContent = 'Fel vid läsning av CSV-fil. Kontrollera filformatet.';
+                uploadStatus.className = 'error';
+                uploadStatus.style.display = 'block';
+                showCompetitorsBtn.style.display = 'none';
+            }
+        };
+        
+        reader.onerror = function() {
+            uploadStatus.textContent = 'Kunde inte läsa filen.';
+            uploadStatus.className = 'error';
+            uploadStatus.style.display = 'block';
+            showCompetitorsBtn.style.display = 'none';
+        };
+        
+        reader.readAsText(file);
+    });
+    
+    showCompetitorsBtn.addEventListener('click', showCompetitors);
 
     // Initial display
     displayLocations([]);

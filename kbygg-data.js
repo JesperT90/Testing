@@ -103,10 +103,25 @@ const COMPETITORS = {
     'K-rauta': { color: '#FED766', type: 'Bygghandel' }
 };
 
+// Konkurrentlokationer (laddas via CSV-import)
+let COMPETITORS_LOCATIONS = [];
+
+// Funktion för att lägga till konkurrentlokationer
+function addCompetitorLocations(locations) {
+    COMPETITORS_LOCATIONS = locations;
+}
+
+// Funktion för att hämta konkurrentlokationer
+function getCompetitorLocations() {
+    return COMPETITORS_LOCATIONS;
+}
+
 // Exportera för användning i huvudappen
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         KBYGG_LOCATIONS,
-        COMPETITORS
+        COMPETITORS,
+        addCompetitorLocations,
+        getCompetitorLocations
     };
 }

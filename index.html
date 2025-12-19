@@ -110,6 +110,18 @@
                     <button id="analyzeBtn" class="analyze-btn">Analysera Lokalisering</button>
                     <button id="showKbyggBtn" class="show-kbygg-btn">Visa K-Bygg Anläggningar</button>
                 </div>
+
+                <div class="criteria-panel" style="margin-top: 20px;">
+                    <h2>Ladda Konkurrentdata</h2>
+                    <p style="color: #666; margin-bottom: 15px;">Ladda upp en CSV-fil med konkurrentlokationer (Konkurrent, Namn, Adress, Stad, Lat, Lng)</p>
+                    <div class="file-upload-section">
+                        <input type="file" id="competitorFileInput" accept=".csv" style="display: none;">
+                        <button id="uploadCompetitorBtn" class="upload-btn">Välj CSV-fil</button>
+                        <span id="fileName" style="margin-left: 15px; color: #666;"></span>
+                    </div>
+                    <div id="uploadStatus" style="margin-top: 10px; padding: 10px; border-radius: 5px; display: none;"></div>
+                    <button id="showCompetitorsBtn" class="show-competitors-btn" style="display: none; margin-top: 15px;">Visa Konkurrenter på Karta</button>
+                </div>
             </div>
 
             <div class="results-section">

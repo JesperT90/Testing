@@ -411,8 +411,9 @@ async function searchLocation(query) {
 }
 
 // Analyze locations based on criteria
-function analyzeLocations() {
+async function analyzeLocations() {
     const criteria = {
+        dataSource: document.getElementById('dataSource').value,
         businessType: document.getElementById('businessType').value,
         population: parseInt(document.getElementById('population').value),
         income: parseInt(document.getElementById('income').value),
@@ -421,13 +422,53 @@ function analyzeLocations() {
         proximity: document.getElementById('proximity').value
     };
 
-    // If no sample locations exist, generate some at current map center
-    if (sampleLocations.length === 0) {
-        sampleLocations = generateSampleLocations(mapCenter.lat, mapCenter.lng, 15);
+    // Show loading message
+    const locationsList = document.getElementById('locationsList');
+    locationsList.innerHTML = '<p style="text-align: center; padding: 40px; color: #667eea;">Loading data...</p>';
+
+    let locationsToAnalyze = [];
+
+    // Choose data source
+    if (criteria.dataSource === 'scb' && typeof fetchRealLocations === 'function') {
+        try {
+            // Fetch real data from SCB
+            console.log('Fetching real data from SCB...');
+            locationsToAnalyze = await fetchRealLocations(mapCenter.lat, mapCenter.lng, 'SE', 5);
+            
+            if (locationsToAnalyze.length === 0) {
+                alert('Kunde inte hämta data från SCB. Använder demo-data istället.\n\nOBS: SCB API kräver CORS-konfiguration för att fungera i webbläsaren.');
+                locationsToAnalyze = generateSampleLocations(mapCenter.lat, mapCenter.lng, 15);
+            }
+        } catch (error) {
+            console.error('SCB data fetch failed:', error);
+            alert('Fel vid hämtning från SCB. Använder demo-data istället.');
+            locationsToAnalyze = generateSampleLocations(mapCenter.lat, mapCenter.lng, 15);
+        }
+    } else if (criteria.dataSource === 'uscensus' && typeof fetchRealLocations === 'function') {
+        try {
+            // Fetch real data from US Census
+            console.log('Fetching real data from US Census...');
+            locationsToAnalyze = await fetchRealLocations(mapCenter.lat, mapCenter.lng, 'US', 5);
+            
+            if (locationsToAnalyze.length === 0) {
+                alert('Could not fetch US Census data. Using demo data instead.\n\nNote: US Census API requires an API key.');
+                locationsToAnalyze = generateSampleLocations(mapCenter.lat, mapCenter.lng, 15);
+            }
+        } catch (error) {
+            console.error('US Census data fetch failed:', error);
+            alert('Error fetching US Census data. Using demo data instead.');
+            locationsToAnalyze = generateSampleLocations(mapCenter.lat, mapCenter.lng, 15);
+        }
+    } else {
+        // Use demo data
+        if (sampleLocations.length === 0) {
+            sampleLocations = generateSampleLocations(mapCenter.lat, mapCenter.lng, 15);
+        }
+        locationsToAnalyze = sampleLocations;
     }
 
     // Calculate scores for all locations
-    const analyzedLocations = sampleLocations.map(location => ({
+    const analyzedLocations = locationsToAnalyze.map(location => ({
         ...location,
         score: calculateScore(location, criteria)
     }));

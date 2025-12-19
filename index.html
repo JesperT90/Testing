@@ -24,6 +24,15 @@
                     <h2>Location Criteria</h2>
                     <div class="criteria-grid">
                         <div class="criteria-item">
+                            <label for="dataSource">Data Source:</label>
+                            <select id="dataSource">
+                                <option value="demo">Demo Data (Random)</option>
+                                <option value="scb">Real Data - SCB (Sweden)</option>
+                                <option value="uscensus">Real Data - US Census</option>
+                            </select>
+                        </div>
+
+                        <div class="criteria-item">
                             <label for="businessType">Business Type:</label>
                             <select id="businessType">
                                 <option value="retail">Retail</option>
@@ -95,6 +104,7 @@
         </footer>
     </div>
 
+    <script src="data-integration.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
